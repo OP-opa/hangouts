@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hangouts</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0a0f1e;
+    color: #e0e6f0;
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+  h1.app-title {
+    text-align: center;
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+    color: #7eb8f7;
+    margin-bottom: 28px;
+    text-transform: uppercase;
+  }
+  .sections {
+    display: flex;
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+  }
+  .section {
+    flex: 1;
+    min-width: 300px;
+    border-radius: 18px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .section-luci {
+    background: linear-gradient(135deg, #1e0a1a 0%, #2a0f22 100%);
+    border: 2px solid #c06090;
+    box-shadow: 0 0 30px #c0608033;
+  }
+  .section-luci .section-title { color: #f0a0c8; text-shadow: 0 0 10px #f0a0c855; }
+  .section-luci .block { background: #2e1028; border: 1px solid #a0507888; }
+  .section-luci .block-title { color: #f0a0c8; }
+  .section-luci input[type=text], .section-luci textarea, .section-luci input[type=time] {
+    background: #3a1530; border: 1px solid #c06090; color: #f8d0e8;
+  }
+  .section-luci input[type=text]::placeholder, .section-luci textarea::placeholder { color: #c090a8; }
+  .section-luci .btn-add { background: #c06090; }
+  .section-luci .btn-add:hover { background: #e080b0; }
+  .section-luci input[type=range] { accent-color: #e080b0; }
+  .section-luci .mood-val { color: #f0a0c8; }
+  .section-luci .tag-high { background: #8b1a3a; color: #ffb0c8; border-color: #c0406070; }
+  .section-luci .tag-med  { background: #7a3060; color: #f0c0e0; border-color: #c06090; }
+  .section-luci .tag-low  { background: #3a1550; color: #c0a0e0; border-color: #8060a0; }
+  .section-luci .item { background: #3a1535; border-left: 3px solid #c06090; }
+  .section-luci .btn-del { color: #f0a0c8; }
+
+  .section-oliver {
+    background: linear-gradient(135deg, #0e0e0e 0%, #1a1a1a 100%);
+    border: 2px solid #555;
+    box-shadow: 0 0 30px #55555533;
+  }
+  .section-oliver .section-title { color: #e0e0e0; text-shadow: 0 0 10px #ffffff22; }
+  .section-oliver .block { background: #111; border: 1px solid #33333388; }
+  .section-oliver .block-title { color: #cccccc; }
+  .section-oliver input[type=text], .section-oliver textarea, .section-oliver input[type=time] {
+    background: #1a1a1a; border: 1px solid #444; color: #e0e0e0;
+  }
+  .section-oliver input[type=text]::placeholder, .section-oliver textarea::placeholder { color: #666; }
+  .section-oliver .btn-add { background: #444; }
+  .section-oliver .btn-add:hover { background: #666; }
+  .section-oliver input[type=range] { accent-color: #aaa; }
+  .section-oliver .mood-val { color: #ccc; }
+  .section-oliver .tag-high { background: #2a2a2a; color: #fff; border-color: #666; }
+  .section-oliver .tag-med  { background: #222; color: #ccc; border-color: #444; }
+  .section-oliver .tag-low  { background: #1a1a1a; color: #888; border-color: #333; }
+  .section-oliver .item { background: #1c1c1c; border-left: 3px solid #555; }
+  .section-oliver .btn-del { color: #888; }
+
+  .section-title {
+    font-size: 1.3rem; font-weight: 700; letter-spacing: 1px;
+    text-align: center; padding-bottom: 8px; border-bottom: 1px solid #ffffff22;
+  }
+  .block { border-radius: 12px; padding: 16px; }
+  .block-title {
+    font-size: 0.85rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 12px;
+  }
+  .mood-row { display: flex; align-items: center; gap: 12px; }
+  input[type=range] { flex: 1; height: 6px; border-radius: 3px; cursor: pointer; outline: none; border: none; background: transparent; }
+  .mood-val { font-size: 1.5rem; font-weight: 700; min-width: 32px; text-align: center; }
+  .mood-labels { display: flex; justify-content: space-between; font-size: 0.7rem; opacity: 0.5; margin-top: 4px; }
+
+  .add-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  input[type=text] { flex: 1; min-width: 120px; padding: 7px 10px; border-radius: 8px; font-size: 0.9rem; outline: none; }
+  .tag-select {
+    padding: 7px 8px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; outline: none;
+    background: #222; color: #ccc; border: 1px solid #444;
+  }
+  .btn-add {
+    padding: 7px 14px; border-radius: 8px; border: none; color: #fff;
+    font-size: 0.9rem; cursor: pointer; font-weight: 600; transition: background 0.2s;
+  }
+  .items-list { display: flex; flex-direction: column; gap: 7px; }
+  .item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px; border-radius: 8px; font-size: 0.88rem;
+  }
+  .item-text { flex: 1; }
+  .tag {
+    font-size: 0.7rem; font-weight: 700; padding: 2px 8px;
+    border-radius: 20px; border: 1px solid; text-transform: uppercase; letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  /* Reaction buttons */
+  .reaction-btn {
+    background: none; border: none; cursor: pointer;
+    font-size: 1.1rem; padding: 2px 3px; border-radius: 6px;
+    transition: transform 0.15s, opacity 0.15s;
+    opacity: 0.35; line-height: 1;
+  }
+  .reaction-btn:hover { transform: scale(1.3); opacity: 0.7; }
+  .reaction-btn.active { opacity: 1; transform: scale(1.2); }
+
+  .btn-del {
+    background: none; border: none; cursor: pointer; font-size: 1rem;
+    opacity: 0.5; transition: opacity 0.2s; padding: 0 2px;
+  }
+  .btn-del:hover { opacity: 1; }
+
+  .time-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .time-label { font-size: 0.85rem; opacity: 0.7; }
+  input[type=time] { padding: 7px 10px; border-radius: 8px; font-size: 0.95rem; outline: none; cursor: pointer; }
+
+  textarea {
+    width: 100%; min-height: 90px; padding: 10px; border-radius: 10px;
+    font-size: 0.9rem; outline: none; resize: vertical; font-family: inherit; line-height: 1.5;
+  }
+
+  .btn-reset {
+    display: block;
+    margin: 0 auto 20px auto;
+    padding: 10px 28px;
+    background: transparent;
+    border: 2px solid #e05555;
+    color: #e05555;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .btn-reset:hover { background: #e05555; color: #fff; }
+
+  .sync-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: #4caf50; margin-right: 6px; animation: pulse 2s infinite;
+  }
+  .sync-status { text-align: center; font-size: 0.75rem; opacity: 0.6; margin-bottom: 8px; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  @media(max-width:700px) { .sections { flex-direction: column; } }
+</style>
+</head>
+<body>
+
+<h1 class="app-title">Hangouts</h1>
+<button class="btn-reset" onclick="window.resetAll()">🗑️ Vymazat vše a začít znovu</button>
+<div class="sync-status"><span class="sync-dot"></span>Připojeno – změny se synchronizují v reálném čase</div>
+
+<div class="sections">
+  <!-- LUCINKA -->
+  <div class="section section-luci">
+    <div class="section-title">🌸 Lucinka-bobinka</div>
+    <div class="block">
+      <div class="block-title">Mood today</div>
+      <div class="mood-row">
+        <input type="range" min="1" max="10" value="5" id="luci-mood" oninput="onMood('luci')">
+        <div class="mood-val" id="luci-mood-val">5</div>
+      </div>
+      <div class="mood-labels"><span>1</span><span>5</span><span>10</span></div>
+    </div>
+    <div class="block">
+      <div class="block-title">💡 Nápady / aktivity</div>
+      <div class="add-row">
+        <input type="text" id="luci-idea-input" placeholder="Nový nápad...">
+        <select class="tag-select" id="luci-idea-tag">
+          <option value="high">🔴 High</option>
+          <option value="med" selected>🟡 Medium</option>
+          <option value="low">🟢 Low</option>
+        </select>
+        <button class="btn-add" onclick="addItem('luci','ideas')">+</button>
+      </div>
+      <div class="items-list" id="luci-ideas-list"></div>
+    </div>
+    <div class="block">
+      <div class="block-title">🚫 Na co se dnes necítím</div>
+      <div class="add-row">
+        <input type="text" id="luci-nope-input" placeholder="Přidat...">
+        <select class="tag-select" id="luci-nope-tag">
+          <option value="high">🔴 High</option>
+          <option value="med" selected>🟡 Medium</option>
+          <option value="low">🟢 Low</option>
+        </select>
+        <button class="btn-add" onclick="addItem('luci','nopes')">+</button>
+      </div>
+      <div class="items-list" id="luci-nopes-list"></div>
+    </div>
+    <div class="block">
+      <div class="block-title">⏰ Mám čas</div>
+      <div class="time-row">
+        <span class="time-label">Od</span>
+        <input type="time" id="luci-time-from" onchange="saveTime('luci')">
+        <span class="time-label">Do</span>
+        <input type="time" id="luci-time-to" onchange="saveTime('luci')">
+      </div>
+    </div>
+    <div class="block">
+      <div class="block-title">📝 Poznámky</div>
+      <textarea id="luci-notes" placeholder="Napiš cokoliv..." oninput="saveNotes('luci')"></textarea>
+    </div>
+  </div>
+
+  <!-- OLIVER -->
+  <div class="section section-oliver">
+    <div class="section-title">🖤 Oliver-zlobiver</div>
+    <div class="block">
+      <div class="block-title">Mood today</div>
+      <div class="mood-row">
+        <input type="range" min="1" max="10" value="5" id="oliver-mood" oninput="onMood('oliver')">
+        <div class="mood-val" id="oliver-mood-val">5</div>
+      </div>
+      <div class="mood-labels"><span>1</span><span>5</span><span>10</span></div>
+    </div>
+    <div class="block">
+      <div class="block-title">💡 Nápady / aktivity</div>
+      <div class="add-row">
+        <input type="text" id="oliver-idea-input" placeholder="Nový nápad...">
+        <select class="tag-select" id="oliver-idea-tag">
+          <option value="high">🔴 High</option>
+          <option value="med" selected>🟡 Medium</option>
+          <option value="low">🟢 Low</option>
+        </select>
+        <button class="btn-add" onclick="addItem('oliver','ideas')">+</button>
+      </div>
+      <div class="items-list" id="oliver-ideas-list"></div>
+    </div>
+    <div class="block">
+      <div class="block-title">🚫 Na co se dnes necítím</div>
+      <div class="add-row">
+        <input type="text" id="oliver-nope-input" placeholder="Přidat...">
+        <select class="tag-select" id="oliver-nope-tag">
+          <option value="high">🔴 High</option>
+          <option value="med" selected>🟡 Medium</option>
+          <option value="low">🟢 Low</option>
+        </select>
+        <button class="btn-add" onclick="addItem('oliver','nopes')">+</button>
+      </div>
+      <div class="items-list" id="oliver-nopes-list"></div>
+    </div>
+    <div class="block">
+      <div class="block-title">⏰ Mám čas</div>
+      <div class="time-row">
+        <span class="time-label">Od</span>
+        <input type="time" id="oliver-time-from" onchange="saveTime('oliver')">
+        <span class="time-label">Do</span>
+        <input type="time" id="oliver-time-to" onchange="saveTime('oliver')">
+      </div>
+    </div>
+    <div class="block">
+      <div class="block-title">📝 Poznámky</div>
+      <textarea id="oliver-notes" placeholder="Napiš cokoliv..." oninput="saveNotes('oliver')"></textarea>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBrKgiaDAsMXYcR7jmgTw-A75C8JqbaBV4",
+    authDomain: "luci-d6774.firebaseapp.com",
+    projectId: "luci-d6774",
+    storageBucket: "luci-d6774.firebasestorage.app",
+    messagingSenderId: "322365660885",
+    appId: "1:322365660885:web:28460e40861cef0f0c0c5c",
+    databaseURL: "https://luci-d6774-default-rtdb.europe-west1.firebasedatabase.app"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+  const tagLabel = { high: '🔴 High', med: '🟡 Medium', low: '🟢 Low' };
+
+  function renderList(person, type, items) {
+    const el = document.getElementById(`${person}-${type}-list`);
+    el.innerHTML = '';
+    if (!items) return;
+    Object.entries(items).forEach(([id, item]) => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      const reaction = item.reaction || null; // 'heart' | 'broken' | null
+      div.innerHTML = `
+        <span class="item-text">${item.text}</span>
+        <span class="tag tag-${item.tag}">${tagLabel[item.tag]}</span>
+        <button class="reaction-btn ${reaction === 'heart' ? 'active' : ''}"
+          title="Líbí se mi"
+          onclick="window.setReaction('${person}','${type}','${id}','heart', '${reaction}')">❤️</button>
+        <button class="reaction-btn ${reaction === 'broken' ? 'active' : ''}"
+          title="Nelíbí se mi"
+          onclick="window.setReaction('${person}','${type}','${id}','broken', '${reaction}')">💔</button>
+        <button class="btn-del" onclick="window.delItem('${person}','${type}','${id}')">✕</button>
+      `;
+      el.appendChild(div);
+    });
+  }
+
+  ['luci', 'oliver'].forEach(person => {
+    onValue(ref(db, `${person}/mood`), snap => {
+      const v = snap.val() ?? 5;
+      const slider = document.getElementById(`${person}-mood`);
+      const valEl = document.getElementById(`${person}-mood-val`);
+      if (slider && document.activeElement !== slider) { slider.value = v; valEl.textContent = v; }
+    });
+    onValue(ref(db, `${person}/ideas`), snap => renderList(person, 'ideas', snap.val()));
+    onValue(ref(db, `${person}/nopes`), snap => renderList(person, 'nopes', snap.val()));
+    onValue(ref(db, `${person}/time`), snap => {
+      const t = snap.val() || {};
+      const f = document.getElementById(`${person}-time-from`);
+      const to = document.getElementById(`${person}-time-to`);
+      if (f && document.activeElement !== f) f.value = t.from || '';
+      if (to && document.activeElement !== to) to.value = t.to || '';
+    });
+    onValue(ref(db, `${person}/notes`), snap => {
+      const el = document.getElementById(`${person}-notes`);
+      if (el && document.activeElement !== el) el.value = snap.val() || '';
+    });
+  });
+
+  window.onMood = (person) => {
+    const v = document.getElementById(`${person}-mood`).value;
+    document.getElementById(`${person}-mood-val`).textContent = v;
+    set(ref(db, `${person}/mood`), parseInt(v));
+  };
+
+  window.addItem = (person, type) => {
+    const key = type === 'ideas' ? 'idea' : 'nope';
+    const inp = document.getElementById(`${person}-${key}-input`);
+    const tag = document.getElementById(`${person}-${key}-tag`).value;
+    const text = inp.value.trim();
+    if (!text) return;
+    const id = Date.now().toString();
+    set(ref(db, `${person}/${type}/${id}`), { text, tag, reaction: null });
+    inp.value = '';
+  };
+
+  window.delItem = (person, type, id) => {
+    set(ref(db, `${person}/${type}/${id}`), null);
+  };
+
+  // Toggle reaction: click same again = deselect
+  window.setReaction = (person, type, id, reaction, current) => {
+    const newVal = current === reaction ? null : reaction;
+    set(ref(db, `${person}/${type}/${id}/reaction`), newVal);
+  };
+
+  window.saveTime = (person) => {
+    const from = document.getElementById(`${person}-time-from`).value;
+    const to = document.getElementById(`${person}-time-to`).value;
+    set(ref(db, `${person}/time`), { from, to });
+  };
+
+  window.resetAll = () => {
+    if (!confirm('Opravdu chceš vymazat všechna data? Tato akce je nevratná.')) return;
+    ['luci', 'oliver'].forEach(p => set(ref(db, p), null));
+  };
+
+  window.saveNotes = debounce((person) => {
+    const val = document.getElementById(`${person}-notes`).value;
+    set(ref(db, `${person}/notes`), val);
+  }, 600);
+
+  document.querySelectorAll('input[type=text]').forEach(inp => {
+    inp.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const parts = inp.id.split('-');
+      const person = parts[0];
+      const type = inp.id.includes('idea') ? 'ideas' : 'nopes';
+      window.addItem(person, type);
+    });
+  });
+</script>
+</body>
+</html>

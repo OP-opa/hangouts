@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hangouts</title>
+
+<!-- Firebase compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -21,6 +26,21 @@
     margin-bottom: 28px;
     text-transform: uppercase;
   }
+  .btn-reset {
+    display: block;
+    margin: 0 auto 20px auto;
+    padding: 10px 28px;
+    background: transparent;
+    border: 2px solid #e05555;
+    color: #e05555;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .btn-reset:hover { background: #e05555; color: #fff; }
   .sections {
     display: flex;
     gap: 24px;
@@ -116,7 +136,6 @@
     border-radius: 20px; border: 1px solid; text-transform: uppercase; letter-spacing: 0.5px;
     white-space: nowrap;
   }
-  /* Reaction buttons */
   .reaction-btn {
     background: none; border: none; cursor: pointer;
     font-size: 1.1rem; padding: 2px 3px; border-radius: 6px;
@@ -141,22 +160,6 @@
     font-size: 0.9rem; outline: none; resize: vertical; font-family: inherit; line-height: 1.5;
   }
 
-  .btn-reset {
-    display: block;
-    margin: 0 auto 20px auto;
-    padding: 10px 28px;
-    background: transparent;
-    border: 2px solid #e05555;
-    color: #e05555;
-    border-radius: 10px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    letter-spacing: 1px;
-    transition: background 0.2s, color 0.2s;
-  }
-  .btn-reset:hover { background: #e05555; color: #fff; }
-
   .sync-dot {
     display: inline-block; width: 8px; height: 8px; border-radius: 50%;
     background: #4caf50; margin-right: 6px; animation: pulse 2s infinite;
@@ -170,7 +173,7 @@
 <body>
 
 <h1 class="app-title">Hangouts</h1>
-<button class="btn-reset" onclick="window.resetAll()">🗑️ Vymazat vše a začít znovu</button>
+<button class="btn-reset" id="resetBtn">🗑️ Vymazat vše a začít znovu</button>
 <div class="sync-status"><span class="sync-dot"></span>Připojeno – změny se synchronizují v reálném čase</div>
 
 <div class="sections">
@@ -180,7 +183,7 @@
     <div class="block">
       <div class="block-title">Mood today</div>
       <div class="mood-row">
-        <input type="range" min="1" max="10" value="5" id="luci-mood" oninput="onMood('luci')">
+        <input type="range" min="1" max="10" value="5" id="luci-mood">
         <div class="mood-val" id="luci-mood-val">5</div>
       </div>
       <div class="mood-labels"><span>1</span><span>5</span><span>10</span></div>
@@ -194,7 +197,7 @@
           <option value="med" selected>🟡 Medium</option>
           <option value="low">🟢 Low</option>
         </select>
-        <button class="btn-add" onclick="addItem('luci','ideas')">+</button>
+        <button class="btn-add" id="luci-idea-btn">+</button>
       </div>
       <div class="items-list" id="luci-ideas-list"></div>
     </div>
@@ -207,7 +210,7 @@
           <option value="med" selected>🟡 Medium</option>
           <option value="low">🟢 Low</option>
         </select>
-        <button class="btn-add" onclick="addItem('luci','nopes')">+</button>
+        <button class="btn-add" id="luci-nope-btn">+</button>
       </div>
       <div class="items-list" id="luci-nopes-list"></div>
     </div>
@@ -215,14 +218,14 @@
       <div class="block-title">⏰ Mám čas</div>
       <div class="time-row">
         <span class="time-label">Od</span>
-        <input type="time" id="luci-time-from" onchange="saveTime('luci')">
+        <input type="time" id="luci-time-from">
         <span class="time-label">Do</span>
-        <input type="time" id="luci-time-to" onchange="saveTime('luci')">
+        <input type="time" id="luci-time-to">
       </div>
     </div>
     <div class="block">
       <div class="block-title">📝 Poznámky</div>
-      <textarea id="luci-notes" placeholder="Napiš cokoliv..." oninput="saveNotes('luci')"></textarea>
+      <textarea id="luci-notes" placeholder="Napiš cokoliv..."></textarea>
     </div>
   </div>
 
@@ -232,7 +235,7 @@
     <div class="block">
       <div class="block-title">Mood today</div>
       <div class="mood-row">
-        <input type="range" min="1" max="10" value="5" id="oliver-mood" oninput="onMood('oliver')">
+        <input type="range" min="1" max="10" value="5" id="oliver-mood">
         <div class="mood-val" id="oliver-mood-val">5</div>
       </div>
       <div class="mood-labels"><span>1</span><span>5</span><span>10</span></div>
@@ -246,7 +249,7 @@
           <option value="med" selected>🟡 Medium</option>
           <option value="low">🟢 Low</option>
         </select>
-        <button class="btn-add" onclick="addItem('oliver','ideas')">+</button>
+        <button class="btn-add" id="oliver-idea-btn">+</button>
       </div>
       <div class="items-list" id="oliver-ideas-list"></div>
     </div>
@@ -259,7 +262,7 @@
           <option value="med" selected>🟡 Medium</option>
           <option value="low">🟢 Low</option>
         </select>
-        <button class="btn-add" onclick="addItem('oliver','nopes')">+</button>
+        <button class="btn-add" id="oliver-nope-btn">+</button>
       </div>
       <div class="items-list" id="oliver-nopes-list"></div>
     </div>
@@ -267,135 +270,203 @@
       <div class="block-title">⏰ Mám čas</div>
       <div class="time-row">
         <span class="time-label">Od</span>
-        <input type="time" id="oliver-time-from" onchange="saveTime('oliver')">
+        <input type="time" id="oliver-time-from">
         <span class="time-label">Do</span>
-        <input type="time" id="oliver-time-to" onchange="saveTime('oliver')">
+        <input type="time" id="oliver-time-to">
       </div>
     </div>
     <div class="block">
       <div class="block-title">📝 Poznámky</div>
-      <textarea id="oliver-notes" placeholder="Napiš cokoliv..." oninput="saveNotes('oliver')"></textarea>
+      <textarea id="oliver-notes" placeholder="Napiš cokoliv..."></textarea>
     </div>
   </div>
 </div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+<script>
+// Firebase init (compat SDK)
+const firebaseConfig = {
+  apiKey: "AIzaSyBrKgiaDAsMXYcR7jmgTw-A75C8JqbaBV4",
+  authDomain: "luci-d6774.firebaseapp.com",
+  databaseURL: "https://luci-d6774-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "luci-d6774",
+  storageBucket: "luci-d6774.firebasestorage.app",
+  messagingSenderId: "322365660885",
+  appId: "1:322365660885:web:28460e40861cef0f0c0c5c"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBrKgiaDAsMXYcR7jmgTw-A75C8JqbaBV4",
-    authDomain: "luci-d6774.firebaseapp.com",
-    projectId: "luci-d6774",
-    storageBucket: "luci-d6774.firebasestorage.app",
-    messagingSenderId: "322365660885",
-    appId: "1:322365660885:web:28460e40861cef0f0c0c5c",
-    databaseURL: "https://luci-d6774-default-rtdb.europe-west1.firebasedatabase.app"
-  };
+const tagLabel = { high: '🔴 High', med: '🟡 Medium', low: '🟢 Low' };
+let updateTimeout = {};
 
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
-  const tagLabel = { high: '🔴 High', med: '🟡 Medium', low: '🟢 Low' };
+// Helper to generate unique ID
+const uid = () => 'item_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
 
-  function renderList(person, type, items) {
-    const el = document.getElementById(`${person}-${type}-list`);
-    el.innerHTML = '';
-    if (!items) return;
-    Object.entries(items).forEach(([id, item]) => {
-      const div = document.createElement('div');
-      div.className = 'item';
-      const reaction = item.reaction || null; // 'heart' | 'broken' | null
-      div.innerHTML = `
-        <span class="item-text">${item.text}</span>
-        <span class="tag tag-${item.tag}">${tagLabel[item.tag]}</span>
-        <button class="reaction-btn ${reaction === 'heart' ? 'active' : ''}"
-          title="Líbí se mi"
-          onclick="window.setReaction('${person}','${type}','${id}','heart', '${reaction}')">❤️</button>
-        <button class="reaction-btn ${reaction === 'broken' ? 'active' : ''}"
-          title="Nelíbí se mi"
-          onclick="window.setReaction('${person}','${type}','${id}','broken', '${reaction}')">💔</button>
-        <button class="btn-del" onclick="window.delItem('${person}','${type}','${id}')">✕</button>
-      `;
-      el.appendChild(div);
-    });
-  }
-
-  ['luci', 'oliver'].forEach(person => {
-    onValue(ref(db, `${person}/mood`), snap => {
-      const v = snap.val() ?? 5;
-      const slider = document.getElementById(`${person}-mood`);
-      const valEl = document.getElementById(`${person}-mood-val`);
-      if (slider && document.activeElement !== slider) { slider.value = v; valEl.textContent = v; }
-    });
-    onValue(ref(db, `${person}/ideas`), snap => renderList(person, 'ideas', snap.val()));
-    onValue(ref(db, `${person}/nopes`), snap => renderList(person, 'nopes', snap.val()));
-    onValue(ref(db, `${person}/time`), snap => {
-      const t = snap.val() || {};
-      const f = document.getElementById(`${person}-time-from`);
-      const to = document.getElementById(`${person}-time-to`);
-      if (f && document.activeElement !== f) f.value = t.from || '';
-      if (to && document.activeElement !== to) to.value = t.to || '';
-    });
-    onValue(ref(db, `${person}/notes`), snap => {
-      const el = document.getElementById(`${person}-notes`);
-      if (el && document.activeElement !== el) el.value = snap.val() || '';
-    });
+// Render list
+function renderList(person, type, items) {
+  const el = document.getElementById(`${person}-${type}-list`);
+  if (!el) return;
+  el.innerHTML = '';
+  if (!items) return;
+  
+  const arr = Object.entries(items).map(([id, item]) => ({id, ...item}));
+  arr.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'item';
+    const reaction = item.reaction || null;
+    
+    div.innerHTML = `
+      <span class="item-text">${item.text}</span>
+      <span class="tag tag-${item.tag}">${tagLabel[item.tag]}</span>
+      <button class="reaction-btn ${reaction === 'heart' ? 'active' : ''}" 
+        data-person="${person}" data-type="${type}" data-id="${item.id}" data-reaction="heart">❤️</button>
+      <button class="reaction-btn ${reaction === 'broken' ? 'active' : ''}" 
+        data-person="${person}" data-type="${type}" data-id="${item.id}" data-reaction="broken">💔</button>
+      <button class="btn-del" data-person="${person}" data-type="${type}" data-id="${item.id}">✕</button>
+    `;
+    el.appendChild(div);
   });
+}
 
-  window.onMood = (person) => {
-    const v = document.getElementById(`${person}-mood`).value;
-    document.getElementById(`${person}-mood-val`).textContent = v;
-    set(ref(db, `${person}/mood`), parseInt(v));
+// Add item
+function addItem(person, type) {
+  const isIdea = type === 'ideas';
+  const input = document.getElementById(`${person}-${isIdea ? 'idea' : 'nope'}-input`);
+  const tagSelect = document.getElementById(`${person}-${isIdea ? 'idea' : 'nope'}-tag`);
+  
+  const text = input.value.trim();
+  if (!text) return;
+  
+  const id = uid();
+  const itemData = {
+    text: text,
+    tag: tagSelect.value,
+    reaction: null
   };
+  
+  db.ref(`${person}/${type}/${id}`).set(itemData)
+    .then(() => {
+      input.value = '';
+      console.log('Item added!');
+    })
+    .catch(err => console.error('Error adding item:', err));
+}
 
-  window.addItem = (person, type) => {
-    const key = type === 'ideas' ? 'idea' : 'nope';
-    const inp = document.getElementById(`${person}-${key}-input`);
-    const tag = document.getElementById(`${person}-${key}-tag`).value;
-    const text = inp.value.trim();
-    if (!text) return;
-    const id = 'item_' + Date.now().toString();
-    set(ref(db, `${person}/${type}/${id}`), { text: text, tag: tag, reaction: null })
-      .then(() => { inp.value = ''; })
-      .catch(err => console.error('Chyba při přidávání:', err));
-  };
+// Delete item
+function deleteItem(person, type, id) {
+  db.ref(`${person}/${type}/${id}`).remove()
+    .catch(err => console.error('Error deleting:', err));
+}
 
-  window.delItem = (person, type, id) => {
-    set(ref(db, `${person}/${type}/${id}`), null);
-  };
-
-  // Toggle reaction: click same again = deselect
-  window.setReaction = (person, type, id, reaction, current) => {
+// Set reaction
+function setReaction(person, type, id, reaction) {
+  db.ref(`${person}/${type}/${id}`).once('value', snap => {
+    const current = snap.val()?.reaction;
     const newVal = current === reaction ? null : reaction;
-    set(ref(db, `${person}/${type}/${id}/reaction`), newVal);
-  };
-
-  window.saveTime = (person) => {
-    const from = document.getElementById(`${person}-time-from`).value;
-    const to = document.getElementById(`${person}-time-to`).value;
-    set(ref(db, `${person}/time`), { from, to });
-  };
-
-  window.resetAll = () => {
-    if (!confirm('Opravdu chceš vymazat všechna data? Tato akce je nevratná.')) return;
-    ['luci', 'oliver'].forEach(p => set(ref(db, p), null));
-  };
-
-  window.saveNotes = debounce((person) => {
-    const val = document.getElementById(`${person}-notes`).value;
-    set(ref(db, `${person}/notes`), val);
-  }, 600);
-
-  document.querySelectorAll('input[type=text]').forEach(inp => {
-    inp.addEventListener('keydown', e => {
-      if (e.key !== 'Enter') return;
-      const parts = inp.id.split('-');
-      const person = parts[0];
-      const type = inp.id.includes('idea') ? 'ideas' : 'nopes';
-      window.addItem(person, type);
-    });
+    db.ref(`${person}/${type}/${id}/reaction`).set(newVal);
   });
+}
+
+// Event delegation for dynamic buttons
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('reaction-btn')) {
+    const {person, type, id, reaction} = e.target.dataset;
+    setReaction(person, type, id, reaction);
+  }
+  if (e.target.classList.contains('btn-del')) {
+    const {person, type, id} = e.target.dataset;
+    deleteItem(person, type, id);
+  }
+});
+
+// Setup for each person
+['luci', 'oliver'].forEach(person => {
+  // Mood
+  const moodSlider = document.getElementById(`${person}-mood`);
+  const moodVal = document.getElementById(`${person}-mood-val`);
+  
+  moodSlider.addEventListener('input', () => {
+    moodVal.textContent = moodSlider.value;
+    db.ref(`${person}/mood`).set(parseInt(moodSlider.value));
+  });
+  
+  db.ref(`${person}/mood`).on('value', snap => {
+    const v = snap.val() || 5;
+    if (document.activeElement !== moodSlider) {
+      moodSlider.value = v;
+      moodVal.textContent = v;
+    }
+  });
+  
+  // Lists
+  db.ref(`${person}/ideas`).on('value', snap => {
+    renderList(person, 'ideas', snap.val());
+  });
+  
+  db.ref(`${person}/nopes`).on('value', snap => {
+    renderList(person, 'nopes', snap.val());
+  });
+  
+  // Time
+  const timeFrom = document.getElementById(`${person}-time-from`);
+  const timeTo = document.getElementById(`${person}-time-to`);
+  
+  const saveTime = () => {
+    db.ref(`${person}/time`).set({
+      from: timeFrom.value,
+      to: timeTo.value
+    });
+  };
+  
+  timeFrom.addEventListener('change', saveTime);
+  timeTo.addEventListener('change', saveTime);
+  
+  db.ref(`${person}/time`).on('value', snap => {
+    const t = snap.val() || {};
+    if (document.activeElement !== timeFrom) timeFrom.value = t.from || '';
+    if (document.activeElement !== timeTo) timeTo.value = t.to || '';
+  });
+  
+  // Notes
+  const notes = document.getElementById(`${person}-notes`);
+  
+  notes.addEventListener('input', () => {
+    clearTimeout(updateTimeout[person]);
+    updateTimeout[person] = setTimeout(() => {
+      db.ref(`${person}/notes`).set(notes.value);
+    }, 500);
+  });
+  
+  db.ref(`${person}/notes`).on('value', snap => {
+    if (document.activeElement !== notes) {
+      notes.value = snap.val() || '';
+    }
+  });
+  
+  // Buttons
+  document.getElementById(`${person}-idea-btn`).addEventListener('click', () => addItem(person, 'ideas'));
+  document.getElementById(`${person}-nope-btn`).addEventListener('click', () => addItem(person, 'nopes'));
+  
+  // Enter key
+  document.getElementById(`${person}-idea-input`).addEventListener('keydown', e => {
+    if (e.key === 'Enter') addItem(person, 'ideas');
+  });
+  document.getElementById(`${person}-nope-input`).addEventListener('keydown', e => {
+    if (e.key === 'Enter') addItem(person, 'nopes');
+  });
+});
+
+// Reset button
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (!confirm('Opravdu chceš vymazat všechna data? Tato akce je nevratná.')) return;
+  
+  db.ref('luci').remove()
+    .then(() => db.ref('oliver').remove())
+    .then(() => alert('Vše vymazáno!'))
+    .catch(err => console.error('Error:', err));
+});
+
+console.log('Aplikace načtena!');
 </script>
 </body>
 </html>

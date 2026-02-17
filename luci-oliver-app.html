@@ -355,9 +355,10 @@
     const tag = document.getElementById(`${person}-${key}-tag`).value;
     const text = inp.value.trim();
     if (!text) return;
-    const id = Date.now().toString();
-    set(ref(db, `${person}/${type}/${id}`), { text, tag, reaction: null });
-    inp.value = '';
+    const id = 'item_' + Date.now().toString();
+    set(ref(db, `${person}/${type}/${id}`), { text: text, tag: tag, reaction: null })
+      .then(() => { inp.value = ''; })
+      .catch(err => console.error('Chyba při přidávání:', err));
   };
 
   window.delItem = (person, type, id) => {

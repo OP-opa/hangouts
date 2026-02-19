@@ -189,6 +189,14 @@
       <div class="mood-labels"><span>1</span><span>5</span><span>10</span></div>
     </div>
     <div class="block">
+      <div class="block-title">Energy today</div>
+      <div class="mood-row">
+        <input type="range" min="1" max="10" value="5" id="luci-energy">
+        <div class="mood-val" id="luci-energy-val">5</div>
+      </div>
+      <div class="mood-labels"><span>1</span><span>5</span><span>10</span></div>
+    </div>
+    <div class="block">
       <div class="block-title">💡 Nápady / aktivity</div>
       <div class="add-row">
         <input type="text" id="luci-idea-input" placeholder="Nový nápad...">
@@ -237,6 +245,14 @@
       <div class="mood-row">
         <input type="range" min="1" max="10" value="5" id="oliver-mood">
         <div class="mood-val" id="oliver-mood-val">5</div>
+      </div>
+      <div class="mood-labels"><span>1</span><span>5</span><span>10</span></div>
+    </div>
+    <div class="block">
+      <div class="block-title">Energy today</div>
+      <div class="mood-row">
+        <input type="range" min="1" max="10" value="5" id="oliver-energy">
+        <div class="mood-val" id="oliver-energy-val">5</div>
       </div>
       <div class="mood-labels"><span>1</span><span>5</span><span>10</span></div>
     </div>
@@ -395,6 +411,23 @@ document.addEventListener('click', e => {
     if (document.activeElement !== moodSlider) {
       moodSlider.value = v;
       moodVal.textContent = v;
+    }
+  });
+  
+  // Energy
+  const energySlider = document.getElementById(`${person}-energy`);
+  const energyVal = document.getElementById(`${person}-energy-val`);
+  
+  energySlider.addEventListener('input', () => {
+    energyVal.textContent = energySlider.value;
+    db.ref(`${person}/energy`).set(parseInt(energySlider.value));
+  });
+  
+  db.ref(`${person}/energy`).on('value', snap => {
+    const v = snap.val() || 5;
+    if (document.activeElement !== energySlider) {
+      energySlider.value = v;
+      energyVal.textContent = v;
     }
   });
   
